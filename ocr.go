@@ -172,6 +172,21 @@ func OcrTable(imgPath string) string {
 
 	map_result := make(map[string]interface{})
 	json.Unmarshal(data, &map_result)
+	if v, ok := map_result["error_code"].(float64); ok {
+		if v == 110 {
+			log.Println("access_token过期，准备重新获取accessToken")
+			updateToken()
+			postArgs1.Set("access_token", currentAccessToken.AccessToken)
+			resp, _ = http.PostForm(TABLE_API_REQ_URI, postArgs1)
+			defer resp.Body.Close()
+			data, err = ioutil.ReadAll(resp.Body)
+		} else {
+			log.Println(v, map_result["error_code"].(string))
+			panic("系统退出")
+		}
+
+	}
+
 	requestID := ""
 	if v, ok := map_result["result"].([]interface{})[0].(map[string]interface{}); ok {
 		requestID = v["request_id"].(string)

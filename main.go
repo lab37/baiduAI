@@ -55,32 +55,31 @@ type accessTokenResponse struct {
 
 var currentAccessToken = new(accessTokenResponse)
 
-func getToken() *accessTokenResponse {
+func updateToken() {
 	postArgs := url.Values{}
-	postArgs.Set("client_id",BAIDU_AI_KEY)
-	postArgs.Set("client_secret",BAIDU_AI_CRET)
-	postArgs.Set("grant_type","client_credentials")
+	postArgs.Set("client_id", BAIDU_AI_KEY)
+	postArgs.Set("client_secret", BAIDU_AI_CRET)
+	postArgs.Set("grant_type", "client_credentials")
 
 	resp, _ := http.PostForm(TOKEN_API_URI, postArgs)
 	defer resp.Body.Close()
-	newAccessToken := new(accessTokenResponse)
-	if err := json.NewDecoder(resp.Body).Decode(newAccessToken); err != nil {
+
+	if err := json.NewDecoder(resp.Body).Decode(currentAccessToken); err != nil {
 		panic(err)
 	}
 
-	if newAccessToken.Error != "" {
-		panic(errors.New(newAccessToken.Error + ": " + newAccessToken.ErrorDescription))
+	if currentAccessToken.Error != "" {
+		panic(errors.New(currentAccessToken.Error + ": " + currentAccessToken.ErrorDescription))
 	}
-
-	return newAccessToken
+	saveToken(currentAccessToken)
 }
 
-func saveToken(token *accessTokenResponse){
-	data,err := json.Marshal(token)
-	if err !=nil {
+func saveToken(token *accessTokenResponse) {
+	data, err := json.Marshal(token)
+	if err != nil {
 		panic("序列化token_response失败")
 	}
-	if ioutil.WriteFile("token.json",data,0664) == nil {
+	if ioutil.WriteFile("token.json", data, 0664) == nil {
 		log.Println("token写入文件成功！")
 	}
 }

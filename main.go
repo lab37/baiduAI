@@ -56,11 +56,10 @@ type accessTokenResponse struct {
 var currentAccessToken = new(accessTokenResponse)
 
 func getToken() *accessTokenResponse {
-	postArgs := url.Values{
-		"client_id":     {BAIDU_AI_KEY},
-		"client_secret": {BAIDU_AI_CRET},
-		"grant_type":    {"client_credentials"},
-	}
+	postArgs := url.Values{}
+	postArgs.Set("client_id",BAIDU_AI_KEY)
+	postArgs.Set("client_secret",BAIDU_AI_CRET)
+	postArgs.Set("grant_type","client_credentials")
 
 	resp, _ := http.PostForm(TOKEN_API_URI, postArgs)
 	defer resp.Body.Close()
@@ -74,6 +73,16 @@ func getToken() *accessTokenResponse {
 	}
 
 	return newAccessToken
+}
+
+func saveToken(token *accessTokenResponse){
+	data,err := json.Marshal(token)
+	if err !=nil {
+		panic("序列化token_response失败")
+	}
+	if ioutil.WriteFile("token.json",data,0664) == nil {
+		log.Println("token写入文件成功！")
+	}
 }
 
 func main() {
